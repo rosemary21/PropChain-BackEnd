@@ -15,11 +15,14 @@ model User {
   email         String    @unique
   walletAddress String?   @unique @map("wallet_address")
   role          UserRole  @default(USER)
+  roleId        String?   @map("role_id")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   properties    Property[]
   receivedTransactions Transaction[] @relation("UserTransactions")
+  userRole      Role?     @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  roleChanges   RoleChangeLog[]
 
   @@map("users")
 }
@@ -59,6 +62,64 @@ model Transaction {
   @@map("transactions")
 }
 
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  level       Int      @default(0)
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  users           User[]
+  permissions     RolePermission[]
+  roleChangeLogs  RoleChangeLog[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  roles RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model RoleChangeLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  oldRoleId String?  @map("old_role_id")
+  changedBy String?  @map("changed_by")
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@map("role_change_logs")
+}
+
 model AuditLog {
   id        String   @id @default(cuid())
   tableName String   @map("table_name")
@@ -83,9 +144,12 @@ model SystemLog {
 
 enum UserRole {
   ADMIN
+  AGENT
+  SELLER
+  BUYER
+  VIEWER
   USER
   VERIFIED_USER
-  AGENT
 }
 
 enum PropertyStatus {
