@@ -14,6 +14,7 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
+import { DocumentsModule } from './documents/documents.module';
 import { AuthRateLimitMiddleware } from './auth/middleware/auth.middleware';
 import configuration from './config/configuration';
 
@@ -80,6 +81,7 @@ import configuration from './config/configuration';
     TransactionsModule,
     BlockchainModule,
     FilesModule,
+    DocumentsModule,
   ],
   controllers: [],
   providers: [],
