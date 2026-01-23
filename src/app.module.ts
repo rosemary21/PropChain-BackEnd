@@ -83,6 +83,7 @@ import configuration from './config/configuration';
     TransactionsModule,
     BlockchainModule,
     FilesModule,
+    DocumentsModule,
   ],
   controllers: [],
   providers: [],
