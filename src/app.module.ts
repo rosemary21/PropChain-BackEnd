@@ -14,7 +14,9 @@ import { TransactionsModule } from './transactions/transactions.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
 import { AuthRateLimitMiddleware } from './auth/middleware/auth.middleware';
+import { PropertiesModule } from './properties/properties.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -75,11 +77,13 @@ import configuration from './config/configuration';
 
     // Business modules
     AuthModule,
+    ApiKeysModule,
     UsersModule,
     PropertiesModule,
     TransactionsModule,
     BlockchainModule,
     FilesModule,
+    DocumentsModule,
   ],
   controllers: [],
   providers: [],
