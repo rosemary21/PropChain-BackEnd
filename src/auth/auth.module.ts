@@ -1,20 +1,19 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { UserService } from '../users/user.service';
-import { PrismaService } from '../database/prisma/prisma.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { Web3Strategy } from './strategies/web3.strategy';
-import { RedisService } from '../common/services/redis.service';
 import { UsersModule } from '../users/users.module';
+import { PrismaService } from '../database/prisma/prisma.service';
 
 @Module({
   imports: [
-    UsersModule,
+    // FIX: Use forwardRef to break the circular dependency with UsersModule
+    forwardRef(() => UsersModule),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -22,7 +21,7 @@ import { UsersModule } from '../users/users.module';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '15m') as any,
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '15m') as any,
         },
       }),
     }),
@@ -33,9 +32,9 @@ import { UsersModule } from '../users/users.module';
     JwtStrategy,
     LocalStrategy,
     Web3Strategy,
-    RedisService,
-    UserService, // This would typically be provided by UsersModule
     PrismaService,
+    // NOTE: Removed UserService here because it's now imported via UsersModule
+    // NOTE: Removed RedisService as it's now globally provided by LoggingModule
   ],
   exports: [AuthService],
 })

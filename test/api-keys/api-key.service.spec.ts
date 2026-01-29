@@ -8,6 +8,7 @@ import { CreateApiKeyDto } from '../../src/api-keys/dto/create-api-key.dto';
 import { UpdateApiKeyDto } from '../../src/api-keys/dto/update-api-key.dto';
 import { ApiKeyScope } from '../../src/api-keys/enums/api-key-scope.enum';
 
+import { PaginationService } from '../../src/common/pagination/pagination.service';
 describe('ApiKeyService', () => {
   let service: ApiKeyService;
   let prismaService: PrismaService;
@@ -49,6 +50,7 @@ describe('ApiKeyService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: RedisService, useValue: mockRedisService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: PaginationService, useValue: {} },
       ],
     }).compile();
 

@@ -14,47 +14,46 @@ export class Web3Strategy extends PassportStrategy(Strategy, 'web3') {
     const { walletAddress, signature } = req.body;
 
     if (!walletAddress || !signature) {
-      throw new UnauthorizedException('Wallet address and signature are required');
+      throw new UnauthorizedException(
+        'Wallet address and signature are required',
+      );
     }
 
     // Verify the signature
     const isValid = await this.verifySignature(walletAddress, signature);
-    
     if (!isValid) {
       throw new UnauthorizedException('Invalid signature');
     }
 
     // Find or create user
     let user = await this.userService.findByWalletAddress(walletAddress);
-    
+
     if (!user) {
-      // Create user if doesn't exist
       user = await this.userService.create({
         email: `${walletAddress}@wallet.auth`,
-        password: Math.random().toString(36),
+        password: Math.random().toString(36).slice(-10),
         walletAddress,
-        firstName: `User-${walletAddress.slice(0, 8)}`,
-        lastName: `Wallet-${walletAddress.slice(0, 8)}`,
+        firstName: 'Web3',
+        lastName: 'User',
       });
     }
 
     return user;
   }
 
-  private async verifySignature(walletAddress: string, signature: string): Promise<boolean> {
+  private async verifySignature(
+    walletAddress: string,
+    signature: string,
+  ): Promise<boolean> {
     try {
-      // Create a message to verify against (in a real app, this would be a challenge)
-      const message = `Welcome to PropChain!
+      // NOTE: In production, use a nonce stored in Redis to prevent replay attacks
+      const message =
+        'Welcome to PropChain!\n\nClick to sign in and accept the Terms of Service.';
 
-Click to sign in and accept the Terms of Service.
-
-Timestamp: ${Date.now()}`;
-      
-      // Recover the address from the signature
       const recoveredAddress = ethers.verifyMessage(message, signature);
-      
-      // Compare the recovered address with the provided wallet address
-      return recoveredAddress.toLowerCase() === walletAddress.toLowerCase();
+      return (
+        recoveredAddress.toLowerCase() === walletAddress.toLowerCase()
+      );
     } catch (error) {
       console.error('Error verifying signature:', error);
       return false;

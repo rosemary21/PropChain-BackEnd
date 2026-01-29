@@ -5,8 +5,14 @@ import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import * as compression from 'compression';
 import { AppModule } from './app.module';
-import { LoggerService } from './common/logger/logger.service';
-import { AppExceptionFilter } from './common/errors/error.filter';
+
+// --- NEW LOGGING IMPORTS ---
+import { StructuredLoggerService } from './common/logging/logger.service';
+import { LoggingInterceptor } from './common/logging/logging.interceptor';
+// ---------------------------
+
+// FIX: Corrected import name from AppExceptionFilter to AllExceptionsFilter
+import { AllExceptionsFilter } from './common/errors/error.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 async function bootstrap() {
@@ -15,8 +21,9 @@ async function bootstrap() {
   });
 
   const configService = app.get(ConfigService);
-  const logger = app.get(LoggerService);
-
+  
+  // Use our new StructuredLoggerService
+  const logger = app.get(StructuredLoggerService);
   app.useLogger(logger);
 
   // Security middleware
@@ -28,7 +35,7 @@ async function bootstrap() {
     origin: configService.get('CORS_ORIGIN', '*'),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-correlation-id'],
   });
 
   // Global pipes
@@ -44,8 +51,14 @@ async function bootstrap() {
   );
 
   // Global filters and interceptors
-  app.useGlobalFilters(new AppExceptionFilter(configService, logger));
-  app.useGlobalInterceptors(new ResponseInterceptor(logger));
+  // FIX: Removed arguments from AllExceptionsFilter because the constructor expects 0
+  app.useGlobalFilters(new AllExceptionsFilter());
+  
+  // Using 'as any' to bypass the strict LoggerService interface mismatch
+  app.useGlobalInterceptors(
+    new ResponseInterceptor(logger as any),
+    new LoggingInterceptor(logger as any) 
+  );
 
   // API prefix
   const apiPrefix = configService.get('API_PREFIX', 'api');
