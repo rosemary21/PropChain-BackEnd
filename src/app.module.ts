@@ -20,6 +20,8 @@ import { AuthRateLimitMiddleware } from './auth/middleware/auth.middleware';
 import configuration from './config/configuration';
 import valuationConfig from './config/valuation.config';
 import { DocumentsModule } from './documents/documents.module';
+import { createRedisConfig } from './common/services/redis.config';
+import { RedisModule } from './common/services/redis.module';
 
 @Module({
   imports: [
@@ -35,6 +37,7 @@ import { DocumentsModule } from './documents/documents.module';
     LoggerModule,
     PrismaModule,
     HealthModule,
+    RedisModule,
 
     // Security and rate limiting
     ThrottlerModule.forRootAsync({
@@ -51,25 +54,31 @@ import { DocumentsModule } from './documents/documents.module';
     // Background jobs
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          password: configService.get<string>('REDIS_PASSWORD'),
-          db: configService.get<number>('REDIS_DB', 0),
-        },
-        defaultJobOptions: {
-          removeOnComplete: 10,
-          removeOnFail: 5,
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
-          },
-        },
-      }),
       inject: [ConfigService],
+      useFactory: createRedisConfig,
     }),
+
+    // BullModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: (configService: ConfigService) => ({
+    //     redis: {
+    //       host: configService.get<string>('REDIS_HOST', 'localhost'),
+    //       port: configService.get<number>('REDIS_PORT', 6379),
+    //       password: configService.get<string>('REDIS_PASSWORD'),
+    //       db: configService.get<number>('REDIS_DB', 0),
+    //     },
+    //     defaultJobOptions: {
+    //       removeOnComplete: 10,
+    //       removeOnFail: 5,
+    //       attempts: 3,
+    //       backoff: {
+    //         type: 'exponential',
+    //         delay: 2000,
+    //       },
+    //     },
+    //   }),
+    //   inject: [ConfigService],
+    // }),
 
     // Scheduled tasks
     ScheduleModule.forRoot(),
@@ -93,8 +102,6 @@ import { DocumentsModule } from './documents/documents.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthRateLimitMiddleware)
-      .forRoutes('/auth*'); // Apply to all auth routes
+    consumer.apply(AuthRateLimitMiddleware).forRoutes('/auth*'); // Apply to all auth routes
   }
 }
