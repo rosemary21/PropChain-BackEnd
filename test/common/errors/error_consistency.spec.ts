@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { AppModule } from '../../../src/app.module';
 import { AppExceptionFilter } from '../../../src/common/errors/error.filter';
 import { ConfigService } from '@nestjs/config';
-import { LoggerService } from '../../../src/common/logger/logger.service';
+import { StructuredLoggerService } from '../../../src/common/logging/logger.service';
 
 describe('Error Response Consistency (e2e)', () => {
   let app: INestApplication;
@@ -17,7 +17,7 @@ describe('Error Response Consistency (e2e)', () => {
     app = moduleFixture.createNestApplication();
     
     const configService = app.get(ConfigService);
-    const logger = app.get(LoggerService);
+    const logger = app.get(StructuredLoggerService);
     
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     app.useGlobalFilters(new AppExceptionFilter(configService, logger));

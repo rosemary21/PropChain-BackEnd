@@ -13,6 +13,7 @@ import { ErrorResponseDto } from './error.dto';
 import { ErrorCode, ErrorMessages } from './error.codes';
 import { v4 as uuidv4 } from 'uuid';
 import { LoggerService } from '../logger/logger.service';
+import { StructuredLoggerService } from '../logging/logger.service';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -20,7 +21,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   constructor(
     @Inject(ConfigService) private readonly configService?: ConfigService,
-    @Inject(LoggerService) private readonly loggerService?: LoggerService,
+    @Inject(StructuredLoggerService) private readonly loggerService?: StructuredLoggerService,
   ) {}
 
   catch(exception: unknown, host: ArgumentsHost) {

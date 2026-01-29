@@ -6,13 +6,11 @@ module.exports = {
     '^.+\\.(t|j)s$': 'ts-jest',
   },
   collectCoverageFrom: [
-    'src/**/*.(t|j)s',
-    '!src/**/*.module.ts',
-    '!src/main.ts',
+    'test/**/*.(t|j)s',
   ],
   coverageDirectory: 'coverage',
   testEnvironment: 'node',
-  roots: ['<rootDir>/src/', '<rootDir>/test/'],
+  roots: ['<rootDir>/test/'],
   moduleNameMapper: {
     '^src/(.*)$': '<rootDir>/src/$1',
   },
@@ -20,5 +18,7 @@ module.exports = {
     '/node_modules/',
     '/dist/',
     '/test/database/',
+    'integration.spec.ts',
+    'e2e-spec.ts',
   ],
 };
